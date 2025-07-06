@@ -408,7 +408,7 @@ static void InterpretAttributes(const MHOctetString &attrs, int &style, int &siz
         size = attrs.GetAt(1);
         lineSpace = attrs.GetAt(2);
         // Is this big-endian or little-endian?  Assume big.
-        letterSpace = attrs.GetAt(3) * 256 + attrs.GetAt(4);
+        letterSpace = (attrs.GetAt(3) * 256) + attrs.GetAt(4);
 
         if (letterSpace > 32767)
         {
@@ -531,7 +531,7 @@ static inline int Tabs(int nXpos, int nTabCount)
     int nNextTab = nXpos;
     if (nTabCount-- > 0)
     {
-        nNextTab += TABSTOP - nXpos % TABSTOP;
+        nNextTab += TABSTOP - (nXpos % TABSTOP);
         nNextTab += nTabCount * TABSTOP;
     }
     return nNextTab; 
@@ -799,24 +799,13 @@ void MHText::Redraw()
     int yOffset = 0;
     // If there isn't space for all the lines we should drop extra lines.
     int nNumLines = theText.Size();
-
-    do
+    int divisor = (m_vertJ == Centre) ? 2 : 1;
+    yOffset = (m_nBoxHeight - (nNumLines * lineSpace)) / divisor;
+    while (yOffset < 0)
     {
-        if (m_vertJ == End)
-        {
-            yOffset = m_nBoxHeight - nNumLines * lineSpace;
-        }
-        else if (m_vertJ == Centre)
-        {
-            yOffset = (m_nBoxHeight - nNumLines * lineSpace) / 2;
-        }
-
-        if (yOffset < 0)
-        {
-            nNumLines--;
-        }
+        nNumLines--;
+        yOffset = (m_nBoxHeight - (nNumLines * lineSpace)) / divisor;
     }
-    while (yOffset < 0);
 
     for (i = 0; i < nNumLines; i++)
     {

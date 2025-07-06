@@ -418,12 +418,12 @@ bool StereoScope::draw( QPainter *p, const QColor &back )
     else if (per < 0.0)
         per = 0.0;
 
-    r = m_startColor.red() + (m_targetColor.red() -
-                m_startColor.red()) * (per * per);
-    g = m_startColor.green() + (m_targetColor.green() -
-                  m_startColor.green()) * (per * per);
-    b = m_startColor.blue() + (m_targetColor.blue() -
-                 m_startColor.blue()) * (per * per);
+    r = m_startColor.red() + ((m_targetColor.red() -
+                m_startColor.red()) * (per * per));
+    g = m_startColor.green() + ((m_targetColor.green() -
+                  m_startColor.green()) * (per * per));
+    b = m_startColor.blue() + ((m_targetColor.blue() -
+                 m_startColor.blue()) * (per * per));
 
     if (r > 255.0)
         r = 255.0;
@@ -1158,8 +1158,8 @@ bool Spectrogram::processUndisplayed(VisualNode *node)
         {                       // prior set ramps from mult to 1.0
             if (k > start - i && start > i)
             {
-                mult = mult + (1 - mult) *
-                    (1 - (float)(start - k) / (float)(start - i));
+                mult = mult + ((1 - mult) *
+                    (1 - (float)(start - k) / (float)(start - i)));
             }
             m_sigL[k] = mult * m_sigL[i + k];
             m_sigR[k] = mult * m_sigR[i + k];
@@ -1480,8 +1480,8 @@ bool Spectrum::processUndisplayed(VisualNode *node)
         {                       // prior set ramps from mult to 1.0
             if (k > start - i && start > i)
             {
-                mult = mult + (1 - mult) *
-                    (1 - (float)(start - k) / (float)(start - i));
+                mult = mult + ((1 - mult) *
+                    (1 - (float)(start - k) / (float)(start - i)));
             }
             m_sigL[k] = mult * m_sigL[i + k];
             m_sigR[k] = mult * m_sigR[i + k];
@@ -1610,11 +1610,11 @@ bool Spectrum::draw(QPainter *p, const QColor &back)
         per = clamp(per, 1.0, 0.0);
 
         r = m_startColor.red() +
-            (m_targetColor.red() - m_startColor.red()) * (per * per);
+            ((m_targetColor.red() - m_startColor.red()) * (per * per));
         g = m_startColor.green() +
-            (m_targetColor.green() - m_startColor.green()) * (per * per);
+            ((m_targetColor.green() - m_startColor.green()) * (per * per));
         b = m_startColor.blue() +
-            (m_targetColor.blue() - m_startColor.blue()) * (per * per);
+            ((m_targetColor.blue() - m_startColor.blue()) * (per * per));
 
         r = clamp(r, 255.0, 0.0);
         g = clamp(g, 255.0, 0.0);
@@ -1710,7 +1710,7 @@ bool Squares::draw(QPainter *p, const QColor &back)
     for (uint i = 0; i < (uint)m_rectsL.size() * 2; i += 2)
         drawRect(p, &(rectsp[i]), i, center, w, h);
     rectsp = m_rectsR.data();
-    for (uint i = 1; i < (uint)m_rectsR.size() * 2 + 1; i += 2)
+    for (uint i = 1; i < ((uint)m_rectsR.size() * 2) + 1; i += 2)
         drawRect(p, &(rectsp[i]), i, center, w, h);
 
     return true;
@@ -2197,24 +2197,26 @@ void AlbumArt::findFrontCover(void)
     }
 }
 
+static int nextType (int type)
+{
+    type++;
+    return (type != IT_LAST) ? type : IT_UNKNOWN;
+}
+
 bool AlbumArt::cycleImage(void)
 {
     if (!gPlayer->getCurrentMetadata())
         return false;
 
     AlbumArtImages *albumArt = gPlayer->getCurrentMetadata()->getAlbumArtImages();
-    int newType = m_currImageType;
 
     // If we only have one image there is nothing to cycle
-    if (albumArt->getImageCount() > 1)
-    {
-        do
-        {
-            newType++;
-            if (newType == IT_LAST)
-                newType = IT_UNKNOWN;
-        } while (!albumArt->getImage((ImageType) newType));
-    }
+    if (albumArt->getImageCount() < 2)
+        return false;
+
+    int newType = nextType(m_currImageType);
+    while (!albumArt->getImage((ImageType) newType))
+        newType = nextType(newType);
 
     if (newType != m_currImageType)
     {

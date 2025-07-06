@@ -352,10 +352,10 @@ HistogramAnalyzer::analyzeFrame(const MythVideoFrame *frame, long long frameno)
     rr3 = ROUNDUP(pgmheight, kRInc);
     cc3 = ROUNDUP(pgmwidth, kCInc);
 
-    borderpixels = (rr1 / kRInc) * (cc3 / kCInc) +        /* top */
-        ((rr2 - rr1) / kRInc) * (cc1 / kCInc) +           /* left */
-        ((rr2 - rr1) / kRInc) * ((cc3 - cc2) / kCInc) +   /* right */
-        ((rr3 - rr2) / kRInc) * (cc3 / kCInc);            /* bottom */
+    borderpixels = ((rr1 / kRInc) * (cc3 / kCInc)) +        /* top */
+        (((rr2 - rr1) / kRInc) * (cc1 / kCInc)) +           /* left */
+        (((rr2 - rr1) / kRInc) * ((cc3 - cc2) / kCInc)) +   /* right */
+        (((rr3 - rr2) / kRInc) * (cc3 / kCInc));            /* bottom */
 
     pp = &m_buf[borderpixels];
     m_histVal.fill(0);
@@ -401,7 +401,7 @@ HistogramAnalyzer::analyzeFrame(const MythVideoFrame *frame, long long frameno)
     memset(m_buf, bordercolor, borderpixels * sizeof(*m_buf));
     m_monochromatic[frameno] = ismonochromatic ? 1 : 0;
     m_mean[frameno] = (float)sumval / npixels;
-    m_median[frameno] = quick_select_median(m_buf, npixels);
+    m_median[frameno] = quick_select_median<uint8_t>(m_buf, npixels);
     m_stddev[frameno] = npixels > 1 ?
         sqrt((sumsquares - (float)sumval * sumval / npixels) / (npixels - 1)) :
             0;
